@@ -48,7 +48,6 @@ jobs:
 
     env:
       UV_FROZEN: "1"
-      COVERAGE_FILE: .coverage.unit
 
     steps:
       - uses: actions/checkout@v6
@@ -67,9 +66,13 @@ jobs:
       - name: Tests (unit)
         run: uv run pytest -q -m "not db" --cov=app --cov-report=term
 
+      - name: Rename unit coverage data
+        if: always()
+        run: mv .coverage .coverage.unit
+
       - name: Upload unit coverage data
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-unit
           path: .coverage.unit
@@ -98,7 +101,6 @@ jobs:
       DATABASE_URL: postgresql+psycopg://app:app@localhost:5432/app
       RUN_DB_TESTS: "1"
       UV_FROZEN: "1"
-      COVERAGE_FILE: .coverage.db
 
     steps:
       - uses: actions/checkout@v6
@@ -120,9 +122,13 @@ jobs:
       - name: Tests (db)
         run: uv run pytest -q -m db --cov=app --cov-report=term
 
+      - name: Rename db coverage data
+        if: always()
+        run: mv .coverage .coverage.db
+
       - name: Upload db coverage data
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-db
           path: .coverage.db
@@ -150,7 +156,7 @@ jobs:
         run: uv sync --group dev
 
       - name: Download coverage data
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: coverage-*
           merge-multiple: true
@@ -203,7 +209,7 @@ jobs:
 
       - name: Upload coverage artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: |
