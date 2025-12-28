@@ -48,8 +48,6 @@ Open:
 - OpenAPI JSON: http://localhost:8000/openapi.json
 - Health: http://localhost:8000/health
 
-If `/scalar` is blank, try overriding `SCALAR_JS_URL` (some networks block CDNs).
-
 ## Dev Commands
 
 ```bash

@@ -32,8 +32,6 @@ def create_app() -> FastAPI:
         return get_scalar_api_reference(
             openapi_url=openapi_url,
             title=f"{settings.app_name} API Reference",
-            scalar_js_url=settings.scalar_js_url,
-            scalar_proxy_url=settings.scalar_proxy_url,
         )
 
     return app
