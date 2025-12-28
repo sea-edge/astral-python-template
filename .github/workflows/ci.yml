@@ -68,14 +68,14 @@ jobs:
 
       - name: Rename unit coverage data
         if: always()
-        run: mv .coverage .coverage.unit
+        run: mv .coverage coverage.unit
 
       - name: Upload unit coverage data
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: coverage-unit
-          path: .coverage.unit
+          path: coverage.unit
           if-no-files-found: error
 
   db_tests:
@@ -124,14 +124,14 @@ jobs:
 
       - name: Rename db coverage data
         if: always()
-        run: mv .coverage .coverage.db
+        run: mv .coverage coverage.db
 
       - name: Upload db coverage data
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: coverage-db
-          path: .coverage.db
+          path: coverage.db
           if-no-files-found: error
 
   coverage:
@@ -163,9 +163,13 @@ jobs:
 
       - name: Combine coverage
         run: |
-          uv run coverage combine .coverage.unit .coverage.db
+          uv run coverage combine coverage.unit coverage.db
           uv run coverage xml -o coverage.xml
           uv run coverage report -m
+
+      - name: Rename combined coverage data
+        if: always()
+        run: mv .coverage coverage.data
 
       - name: Coverage summary
         if: always()
@@ -214,5 +218,5 @@ jobs:
           name: coverage
           path: |
             coverage.xml
-            .coverage
+            coverage.data
           if-no-files-found: error
