@@ -47,6 +47,9 @@ jobs:
       - name: Type check
         run: uv run ty check
 
+      - name: Verify model registry
+        run: uv run python scripts/verify_model_registry.py
+
       - name: Migrate
         run: uv run alembic upgrade head
 

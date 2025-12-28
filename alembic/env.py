@@ -6,7 +6,7 @@ from logging.config import fileConfig
 from sqlalchemy.exc import OperationalError
 from sqlmodel import SQLModel
 
-import app.slices.users.models  # noqa: F401
+import app.core.model_registry  # noqa: F401
 from alembic import context
 from app.core.db import engine
 from app.core.settings import settings
