@@ -2,12 +2,25 @@ pre-commit:
   parallel: true
   commands:
     ruff-format:
-      run: uv run ruff format .
+      run: |
+        sh -c '
+          set -eu
+          files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.py$" || true)
+          [ -z "$files" ] && exit 0
+          uv run ruff format $files
+          git add $files
+        '
     ruff-check:
-      run: uv run ruff check .
+      run: |
+        sh -c '
+          set -eu
+          files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.py$" || true)
+          [ -z "$files" ] && exit 0
+          uv run ruff check $files
+        '
 
 pre-push:
   parallel: true
   commands:
     ty-check:
-      run: sh -c 'git rev-parse --verify HEAD >/dev/null 2>&1 || exit 0; uv run ty check'
+      run: uv run ty check

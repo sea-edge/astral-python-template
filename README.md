@@ -21,6 +21,10 @@ uv sync --group dev
 mise x -- lefthook install
 ```
 
+Hooks:
+- `pre-commit`: runs `ruff format` / `ruff check` for staged `*.py` only (and re-stages formatted files)
+- `pre-push`: runs `ty check`
+
 ## Run Postgres
 
 ```bash
