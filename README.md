@@ -71,4 +71,7 @@ uv run ruff check .
 uv run ruff format .
 uv run ty check
 uv run pytest -q
+
+# Optional: DB-backed tests
+RUN_DB_TESTS=1 DATABASE_URL=postgresql+psycopg://app:app@localhost:5432/app uv run pytest -q
 ```
