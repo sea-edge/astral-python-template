@@ -37,6 +37,16 @@ docker compose up -d db
 uv run alembic upgrade head
 ```
 
+## Add DB models (SQLModel)
+
+SQLModel のテーブルは、モデルクラスが import されて初めて `SQLModel.metadata` に登録されます。
+そのため Alembic の autogenerate が取りこぼさないように、モデル import を集約しています。
+
+運用:
+- 新しい slice に `models.py` を追加したら、[src/app/core/model_registry.py](src/app/core/model_registry.py) に import を1行追加
+- 同じく `REGISTERED_MODEL_MODULES` にモジュール名を追加
+- CI が [scripts/verify_model_registry.py](scripts/verify_model_registry.py) で `app.slices.*.models` を自動発見し、登録漏れがあると落とします
+
 ## Run API
 
 ```bash
