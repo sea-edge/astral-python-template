@@ -1,0 +1,10 @@
+[tools]
+python = "3.13.11"
+uv = "0.9.18"
+ruff = "0.14.10"
+lefthook = "2.0.13"
+
+[env]
+# Keep uv-created venv local to the project
+UV_VENV_SEED = "pip"
+UV_PROJECT_ENVIRONMENT = ".venv"

@@ -1,0 +1,13 @@
+pre-commit:
+  parallel: true
+  commands:
+    ruff-format:
+      run: uv run ruff format .
+    ruff-check:
+      run: uv run ruff check .
+
+pre-push:
+  parallel: true
+  commands:
+    ty-check:
+      run: sh -c 'git rev-parse --verify HEAD >/dev/null 2>&1 || exit 0; uv run ty check'
