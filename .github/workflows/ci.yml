@@ -13,28 +13,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  checks:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
-          POSTGRES_DB: app
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U app -d app"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-
     env:
-      DATABASE_URL: postgresql+psycopg://app:app@localhost:5432/app
       UV_FROZEN: "1"
-      RUN_DB_TESTS: "1"
 
     steps:
       - uses: actions/checkout@v6
@@ -59,11 +42,124 @@ jobs:
       - name: Verify model registry
         run: uv run python scripts/verify_model_registry.py
 
+  unit_tests:
+    runs-on: ubuntu-latest
+    needs: [checks]
+
+    env:
+      UV_FROZEN: "1"
+      COVERAGE_FILE: .coverage.unit
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.18"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13.11"
+
+      - name: Sync dependencies
+        run: uv sync --group dev
+
+      - name: Tests (unit)
+        run: uv run pytest -q -m "not db" --cov=app --cov-report=term
+
+      - name: Upload unit coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: .coverage.unit
+          if-no-files-found: error
+
+  db_tests:
+    runs-on: ubuntu-latest
+    needs: [checks]
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U app -d app"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DATABASE_URL: postgresql+psycopg://app:app@localhost:5432/app
+      RUN_DB_TESTS: "1"
+      UV_FROZEN: "1"
+      COVERAGE_FILE: .coverage.db
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.18"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13.11"
+
+      - name: Sync dependencies
+        run: uv sync --group dev
+
       - name: Migrate
         run: uv run alembic upgrade head
 
-      - name: Tests
-        run: uv run pytest -q --cov=app --cov-report=term --cov-report=xml:coverage.xml
+      - name: Tests (db)
+        run: uv run pytest -q -m db --cov=app --cov-report=term
+
+      - name: Upload db coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-db
+          path: .coverage.db
+          if-no-files-found: error
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: [unit_tests, db_tests]
+
+    env:
+      UV_FROZEN: "1"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.18"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13.11"
+
+      - name: Sync dependencies
+        run: uv sync --group dev
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Combine coverage
+        run: |
+          uv run coverage combine .coverage.unit .coverage.db
+          uv run coverage xml -o coverage.xml
+          uv run coverage report -m
 
       - name: Coverage summary
         if: always()
@@ -113,4 +209,4 @@ jobs:
           path: |
             coverage.xml
             .coverage
-          if-no-files-found: ignore
+          if-no-files-found: error
