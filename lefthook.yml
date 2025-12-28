@@ -23,4 +23,20 @@ pre-push:
   parallel: true
   commands:
     ty-check:
-      run: uv run ty check
+      run: |
+        sh -c '
+          set -eu
+
+          if git rev-parse --abbrev-ref --symbolic-full-name "@{u}" >/dev/null 2>&1; then
+            range="@{u}...HEAD"
+          elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            range="HEAD~1..HEAD"
+          else
+            range="HEAD"
+          fi
+
+          files=$(git diff --name-only --diff-filter=ACMR "$range" | grep -E "^src/.*\\.py$" || true)
+          [ -z "$files" ] && exit 0
+
+          uv run ty check
+        '

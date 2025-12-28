@@ -23,7 +23,7 @@ mise x -- lefthook install
 
 Hooks:
 - `pre-commit`: runs `ruff format` / `ruff check` for staged `*.py` only (and re-stages formatted files)
-- `pre-push`: runs `ty check`
+- `pre-push`: runs `ty check` only when `src/**/*.py` changed
 
 ## Run Postgres
 
