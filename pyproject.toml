@@ -2,6 +2,8 @@
 name = "astral-python-template"
 version = "0.1.0"
 description = "FastAPI backend scaffold (Vertical Slice Architecture)"
+# NOTE: This is for packaging metadata (PyPI/GitHub Packages). If you never publish this
+# as a library, you can remove this to simplify Docker builds (no need to copy README).
 readme = "README.md"
 requires-python = ">=3.13"
 

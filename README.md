@@ -28,7 +28,7 @@ Hooks:
 ## Run Postgres
 
 ```bash
-docker compose up -d
+docker compose up -d db
 ```
 
 ## Migrate
@@ -43,6 +43,12 @@ uv run alembic upgrade head
 uv run uvicorn app.main:app --reload
 ```
 
+## Run API (Docker)
+
+```bash
+docker compose up -d --build api
+```
+
 Open:
 - Scalar API Docs: http://localhost:8000/docs
 - OpenAPI JSON: http://localhost:8000/openapi.json
@@ -54,4 +60,5 @@ Open:
 uv run ruff check .
 uv run ruff format .
 uv run ty check
+uv run pytest -q
 ```
