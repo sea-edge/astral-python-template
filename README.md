@@ -15,6 +15,12 @@ mise install
 uv sync --group dev
 ```
 
+If you want to use environment variables via a file:
+
+```bash
+cp .env.example .env
+```
+
 ## Git Hooks (lefthook)
 
 ```bash
@@ -75,4 +81,7 @@ uv run pytest -q --cov=app --cov-report=term --cov-report=html
 
 # Optional: DB-backed tests
 RUN_DB_TESTS=1 DATABASE_URL=postgresql+psycopg://app:app@localhost:5432/app uv run pytest -q
+
+# Optional: run only DB-backed tests
+RUN_DB_TESTS=1 DATABASE_URL=postgresql+psycopg://app:app@localhost:5432/app uv run pytest -q -m db
 ```

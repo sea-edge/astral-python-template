@@ -46,6 +46,11 @@ python-version = "3.13"
 root = ["./src"]
 python = "./.venv"
 
+[tool.pytest.ini_options]
+markers = [
+  "db: tests that require a live database",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

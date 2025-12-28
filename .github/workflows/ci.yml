@@ -65,6 +65,46 @@ jobs:
       - name: Tests
         run: uv run pytest -q --cov=app --cov-report=term --cov-report=xml:coverage.xml
 
+      - name: Coverage summary
+        if: always()
+        run: |
+          uv run python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import pathlib
+          import xml.etree.ElementTree as ET
+
+          path = pathlib.Path("coverage.xml")
+          if not path.exists():
+            raise SystemExit(0)
+
+          root = ET.parse(path).getroot()
+          line_rate = float(root.attrib.get("line-rate", "0")) * 100
+          branch_rate = float(root.attrib.get("branch-rate", "0")) * 100
+
+          lines_covered = root.attrib.get("lines-covered")
+          lines_valid = root.attrib.get("lines-valid")
+          branches_covered = root.attrib.get("branches-covered")
+          branches_valid = root.attrib.get("branches-valid")
+
+          summary = [
+            "### Coverage",
+            f"- Lines: {line_rate:.1f}%" + (
+              f" ({lines_covered}/{lines_valid})" if lines_covered and lines_valid else ""
+            ),
+            f"- Branches: {branch_rate:.1f}%" + (
+              f" ({branches_covered}/{branches_valid})" if branches_covered and branches_valid else ""
+            ),
+            "",
+            "Artifact: `coverage` (coverage.xml / .coverage)",
+            "",
+          ]
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+            f.write("\n".join(summary))
+          PY
+
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4

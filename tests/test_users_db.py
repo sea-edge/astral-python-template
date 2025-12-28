@@ -5,17 +5,14 @@ import uuid
 
 import pytest
 
+pytestmark = pytest.mark.db
+
 
 def _sqlalchemy_url_to_psycopg_dsn(database_url: str) -> str:
     # SQLAlchemy URL: postgresql+psycopg://...
     if database_url.startswith("postgresql+psycopg://"):
         return database_url.replace("postgresql+psycopg://", "postgresql://", 1)
     return database_url
-
-
-# Keep DB-backed tests opt-in so local unit runs stay fast.
-if os.getenv("RUN_DB_TESTS") != "1":
-    pytest.skip("DB tests disabled (set RUN_DB_TESTS=1)", allow_module_level=True)
 
 
 def test_users_create_and_list_with_db(client):
