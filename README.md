@@ -44,7 +44,7 @@ uv run uvicorn app.main:app --reload
 ```
 
 Open:
-- Scalar API Docs: http://localhost:8000/scalar
+- Scalar API Docs: http://localhost:8000/docs
 - OpenAPI JSON: http://localhost:8000/openapi.json
 - Health: http://localhost:8000/health
 

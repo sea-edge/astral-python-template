@@ -20,7 +20,7 @@ def create_app() -> FastAPI:
     app.include_router(api_router)
 
     # Scalar docs (served separately from Swagger UI)
-    @app.get("/scalar", include_in_schema=False)
+    @app.get("/docs", include_in_schema=False)
     def scalar_docs(request: Request):
         from scalar_fastapi import get_scalar_api_reference
 
