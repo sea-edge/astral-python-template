@@ -20,6 +20,12 @@ class Settings(BaseSettings):
 
     logfire_token: str | None = Field(default=None, alias="LOGFIRE_TOKEN")
 
+    scalar_js_url: str = Field(
+        default="https://cdn.jsdelivr.net/npm/@scalar/api-reference",
+        alias="SCALAR_JS_URL",
+    )
+    scalar_proxy_url: str = Field(default="", alias="SCALAR_PROXY_URL")
+
 
 @lru_cache
 def get_settings() -> Settings:
