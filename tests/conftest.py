@@ -5,6 +5,8 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
+os.environ.setdefault("APP_ENV", "test")
+
 from app.main import app
 
 
