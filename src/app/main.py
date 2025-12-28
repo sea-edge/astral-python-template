@@ -2,11 +2,17 @@ from __future__ import annotations
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.utils import get_openapi
 from starlette.exceptions import HTTPException
 
 from app.api.router import api_router
 from app.core.logging import configure_observability
-from app.core.problem_details import problem_response
+from app.core.problem_details import (
+    PROBLEM_MEDIA_TYPE,
+    PROBLEM_SCHEMA_REF,
+    problem_details_schema,
+    problem_response,
+)
 from app.core.settings import settings
 
 
@@ -19,6 +25,86 @@ def create_app() -> FastAPI:
     )
 
     configure_observability(app)
+
+    def custom_openapi():
+        if app.openapi_schema is not None:
+            return app.openapi_schema
+
+        schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            routes=app.routes,
+        )
+
+        components = schema.setdefault("components", {})
+        schemas = components.setdefault("schemas", {})
+        schemas.setdefault("ProblemDetails", problem_details_schema())
+
+        error_responses: dict[int, str] = {
+            400: "Bad Request",
+            401: "Unauthorized",
+            403: "Forbidden",
+            404: "Not Found",
+            409: "Conflict",
+            422: "Unprocessable Entity",
+            500: "Internal Server Error",
+        }
+
+        paths_obj = schema.get("paths", {})
+        if not isinstance(paths_obj, dict):
+            app.openapi_schema = schema
+            return app.openapi_schema
+
+        for path_item in paths_obj.values():
+            if not isinstance(path_item, dict):
+                continue
+
+            for method, operation in path_item.items():
+                if method not in {
+                    "get",
+                    "post",
+                    "put",
+                    "patch",
+                    "delete",
+                    "head",
+                    "options",
+                    "trace",
+                }:
+                    continue
+
+                if not isinstance(operation, dict):
+                    continue
+
+                responses = operation.setdefault("responses", {})
+                if not isinstance(responses, dict):
+                    continue
+
+                for status_code, title in error_responses.items():
+                    key = str(status_code)
+                    resp_obj = responses.get(key)
+
+                    # Replace FastAPI's default 422 schema (application/json) with Problem Details,
+                    # since we actually return application/problem+json at runtime.
+                    if status_code == 422:
+                        responses[key] = {
+                            "description": title,
+                            "content": {PROBLEM_MEDIA_TYPE: {"schema": PROBLEM_SCHEMA_REF}},
+                        }
+                        continue
+
+                    if resp_obj is None or not isinstance(resp_obj, dict):
+                        resp_obj = {"description": title}
+                        responses[key] = resp_obj
+
+                    content_obj = resp_obj.setdefault("content", {})
+                    if not isinstance(content_obj, dict):
+                        continue
+                    content_obj.setdefault(PROBLEM_MEDIA_TYPE, {"schema": PROBLEM_SCHEMA_REF})
+
+        app.openapi_schema = schema
+        return app.openapi_schema
+
+    app.openapi = custom_openapi  # type: ignore[method-assign]
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):

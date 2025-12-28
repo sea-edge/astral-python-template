@@ -7,6 +7,26 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 PROBLEM_MEDIA_TYPE = "application/problem+json"
+PROBLEM_SCHEMA_REF = {"$ref": "#/components/schemas/ProblemDetails"}
+
+
+def problem_details_schema() -> dict[str, Any]:
+    # RFC 9457 Problem Details for HTTP APIs
+    # Extensions are allowed, so we keep it flexible.
+    return {
+        "type": "object",
+        "required": ["type", "title", "status"],
+        "properties": {
+            "type": {"type": "string", "format": "uri-reference", "example": "about:blank"},
+            "title": {"type": "string"},
+            "status": {"type": "integer", "format": "int32"},
+            "detail": {"type": "string"},
+            "instance": {"type": "string", "format": "uri-reference"},
+            # Common extension we include for 422 validation errors.
+            "errors": {"type": "array", "items": {"type": "object"}},
+        },
+        "additionalProperties": True,
+    }
 
 
 def _default_title(status_code: int) -> str:
