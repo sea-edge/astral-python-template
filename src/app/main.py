@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
@@ -26,7 +28,7 @@ def create_app() -> FastAPI:
 
     configure_observability(app)
 
-    def custom_openapi():
+    def custom_openapi() -> dict[str, Any]:
         if app.openapi_schema is not None:
             return app.openapi_schema
 
@@ -96,7 +98,10 @@ def create_app() -> FastAPI:
                         resp_obj = {"description": title}
                         responses[key] = resp_obj
 
-                    content_obj = resp_obj.setdefault("content", {})
+                    # Explicitly type the content_obj for type checker
+                    if "content" not in resp_obj:
+                        resp_obj["content"] = {}
+                    content_obj = resp_obj["content"]
                     if not isinstance(content_obj, dict):
                         continue
                     content_obj.setdefault(PROBLEM_MEDIA_TYPE, {"schema": PROBLEM_SCHEMA_REF})
