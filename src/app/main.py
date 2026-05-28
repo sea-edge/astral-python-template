@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any, cast
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
@@ -16,24 +18,15 @@ from app.core.problem_details import (
 from app.core.settings import settings
 
 
-def create_app() -> FastAPI:
-    app = FastAPI(
-        title=settings.app_name,
-        version=settings.app_version,
-        docs_url=None,
-        redoc_url=None,
-    )
-
-    configure_observability(app)
-
-    def custom_openapi():
-        if app.openapi_schema is not None:
-            return app.openapi_schema
+class App(FastAPI):
+    def openapi(self) -> dict[str, Any]:
+        if self.openapi_schema is not None:
+            return self.openapi_schema
 
         schema = get_openapi(
-            title=app.title,
-            version=app.version,
-            routes=app.routes,
+            title=self.title,
+            version=self.version,
+            routes=self.routes,
         )
 
         components = schema.setdefault("components", {})
@@ -52,8 +45,8 @@ def create_app() -> FastAPI:
 
         paths_obj = schema.get("paths", {})
         if not isinstance(paths_obj, dict):
-            app.openapi_schema = schema
-            return app.openapi_schema
+            self.openapi_schema = schema
+            return self.openapi_schema
 
         for path_item in paths_obj.values():
             if not isinstance(path_item, dict):
@@ -96,15 +89,28 @@ def create_app() -> FastAPI:
                         resp_obj = {"description": title}
                         responses[key] = resp_obj
 
-                    content_obj = resp_obj.setdefault("content", {})
+                    resp_obj = cast(dict[str, Any], resp_obj)
+                    content_obj = resp_obj.get("content")
+                    if content_obj is None:
+                        content_obj = {}
+                        resp_obj["content"] = content_obj
                     if not isinstance(content_obj, dict):
                         continue
                     content_obj.setdefault(PROBLEM_MEDIA_TYPE, {"schema": PROBLEM_SCHEMA_REF})
 
-        app.openapi_schema = schema
-        return app.openapi_schema
+        self.openapi_schema = schema
+        return self.openapi_schema
 
-    app.openapi = custom_openapi  # type: ignore[method-assign]
+
+def create_app() -> FastAPI:
+    app = App(
+        title=settings.app_name,
+        version=settings.app_version,
+        docs_url=None,
+        redoc_url=None,
+    )
+
+    configure_observability(app)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
