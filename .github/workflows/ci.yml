@@ -26,7 +26,7 @@ jobs:
         with:
           version: "0.9.18"
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13.11"
 
@@ -56,7 +56,7 @@ jobs:
         with:
           version: "0.9.18"
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13.11"
 
@@ -109,7 +109,7 @@ jobs:
         with:
           version: "0.9.18"
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13.11"
 
@@ -148,7 +148,7 @@ jobs:
         with:
           version: "0.9.18"
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13.11"
 
