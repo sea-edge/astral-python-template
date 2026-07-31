@@ -45,14 +45,15 @@ jobs:
         run: uv run python scripts/verify_model_registry.py
 
       - name: Tests (unit)
+        id: unit_tests
         run: uv run pytest -q -m "not db" --cov=app --cov-report=term
 
       - name: Rename unit coverage data
-        if: always()
+        if: steps.unit_tests.outcome == 'success' || steps.unit_tests.outcome == 'failure'
         run: mv .coverage coverage.unit
 
       - name: Upload unit coverage data
-        if: always()
+        if: steps.unit_tests.outcome == 'success' || steps.unit_tests.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
           name: coverage-unit
@@ -103,14 +104,15 @@ jobs:
         run: uv run alembic upgrade head
 
       - name: Tests (db)
+        id: db_tests
         run: uv run pytest -q -m db --cov=app --cov-report=term
 
       - name: Rename db coverage data
-        if: always()
+        if: steps.db_tests.outcome == 'success' || steps.db_tests.outcome == 'failure'
         run: mv .coverage coverage.db
 
       - name: Upload db coverage data
-        if: always()
+        if: steps.db_tests.outcome == 'success' || steps.db_tests.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
           name: coverage-db
